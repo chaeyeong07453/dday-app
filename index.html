@@ -237,7 +237,7 @@
       <div class="field"><label for="themes">뉴런 테마 완료 (오늘)</label><input type="number" id="themes" min="0" step="0.5" inputmode="decimal"></div>
     </div>
     <div class="field" style="margin-top:10px"><label for="memo">내일 아침 회독 목록, 할 일 3개</label><textarea id="memo" placeholder="예) 생윤 롤스 선지 4개 / 15번 기출 3세트 / 뉴런 수1 T7"></textarea></div>
-    <div class="btns"><button class="btn" id="saveDay">오늘 저장</button><button class="btn ghost" id="bedBtn">취침 기록</button></div>
+    <div class="btns"><button class="btn" id="saveDay">오늘 저장</button><button class="btn ghost" id="bedBtn">취침 기록</button><button class="btn ghost" id="bedClear" hidden>취침 기록 지우기</button></div>
   </section>
 
   <!-- ===== 타이머 ===== -->
@@ -689,10 +689,14 @@ async function init(){
 
   document.querySelectorAll('nav button').forEach(b=>b.onclick=()=>{ document.querySelectorAll('nav button').forEach(x=>x.classList.toggle('on',x===b)); document.querySelectorAll('section').forEach(s=>s.classList.toggle('on', s.id==='tab-'+b.dataset.tab)); });
   document.getElementById('wakeBtn').onclick = async ()=>{ const v=document.getElementById('wake').value; if(!v){ toast('시각을 먼저 고른다.'); return; } day.wake=v; await S.set(todayKey(), day); renderAll(); };
-  document.getElementById('saveDay').onclick = async ()=>{ day.closed=document.getElementById('closed').value||null; day.themes=document.getElementById('themes').value||null; day.memo=document.getElementById('memo').value;
+  document.getElementById('saveDay').onclick = async ()=>{ if(!confirm('오늘 기록을 저장할까요?')) return; day.closed=document.getElementById('closed').value||null; day.themes=document.getElementById('themes').value||null; day.memo=document.getElementById('memo').value;
     if(day.themes){ settings.neuronDone = Math.min(NEURON_TOTAL, (settings.neuronDone||0) + (settings.neuronDoneDate===ymd(new Date())?0:+day.themes)); settings.neuronDoneDate=ymd(new Date()); await S.set('settings',settings); }
     await S.set(todayKey(), day); toast('저장. 내일 아침 식탁에서 이 메모부터.'); renderAll(); };
-  document.getElementById('bedBtn').onclick = async ()=>{ const n=new Date(); day.bed=`${pad(n.getHours())}:${pad(n.getMinutes())}`; await S.set(todayKey(), day); const late = n.getHours()*60+n.getMinutes() > 23*60 && n.getHours()<12; toast(late?`${day.bed}. 늦었다. 내일 기상이 대가다.`:`${day.bed} 취침. 폰은 거실에.`); };
+  const bedBtn=document.getElementById('bedBtn'), bedClear=document.getElementById('bedClear');
+  function reflectBed(){ if(day.bed){ bedBtn.textContent=`취침 ${day.bed} 기록됨`; bedClear.hidden=false; } else { bedBtn.textContent='취침 기록'; bedClear.hidden=true; } }
+  reflectBed();
+  bedBtn.onclick = async ()=>{ if(day.bed && !confirm(`이미 ${day.bed}로 기록됐어요. 지금 시각으로 덮어쓸까요?`)) return; if(!day.bed && !confirm('지금 시각으로 취침을 기록할까요?')) return; const n=new Date(); day.bed=`${pad(n.getHours())}:${pad(n.getMinutes())}`; await S.set(todayKey(), day); reflectBed(); const late = n.getHours()*60+n.getMinutes() > 23*60 && n.getHours()<12; toast(late?`${day.bed}. 늦었다. 내일 기상이 대가다.`:`${day.bed} 취침. 폰은 거실에.`); };
+  bedClear.onclick = async ()=>{ if(!confirm('취침 기록을 지울까요?')) return; day.bed=null; await S.set(todayKey(), day); reflectBed(); toast('취침 기록을 지웠어요.'); };
   document.getElementById('neuronDone').onchange = async e=>{ settings.neuronDone=+e.target.value||0; await S.set('settings',settings); renderAll(); };
   document.getElementById('fStop').onclick = ()=>{ if(day.running) toggleSubj(day.running.id); };
   document.getElementById('fPeek').onclick = ()=>{ peeking=true; closeFocus(); document.getElementById('peekBar').hidden=false; };
