@@ -290,9 +290,9 @@
 
     <div class="btns" style="margin-top:28px">
       <button class="btn ghost" id="notifBtn">알림 허용</button>
-      <button class="btn ghost" id="exportBtn">데이터 내보내기</button>
+      <button class="btn ghost" id="exportBtn">데이터 내보내기</button><button class="btn ghost" id="importBtn">데이터 가져오기</button><input type="file" id="importFile" accept="application/json,.json" hidden>
     </div>
-    <p class="note">이 페이지는 브라우저가 열려 있을 때만 알림을 보낼 수 있다. 진짜 푸시 알림이 필요하면 이 파일을 Claude Code로 넘겨 PWA로 만들면 된다.</p>
+    <p class="note">아이폰은 홈 화면 앱과 Safari의 저장소가 따로다. 앱을 지우면 기록도 지워진다 — 주 1회 내보내기로 백업. 이 페이지는 브라우저가 열려 있을 때만 알림을 보낼 수 있다. 진짜 푸시 알림이 필요하면 이 파일을 Claude Code로 넘겨 PWA로 만들면 된다.</p>
   </section>
 
   <nav>
@@ -318,7 +318,7 @@
 const EXAM = new Date(2026, 10, 19); // 2026-11-19 수능
 const WAKE_TARGET = 6*60 + 40;
 const NEURON_TOTAL = 37; // 수1 4 + 수2 18 + 미적 15 (BNR 제외)
-const NEURON_PLAN = {"2026-09-04": "수1 T9 ① (되면 ②) — 회사 날", "2026-09-05": "수1 T9 ②~⑤ + T10", "2026-09-06": "수1 BNR(지로) + T11 ①②③", "2026-09-07": "수1 T11 ④⑤ + T12", "2026-09-08": "수1 BNR(삼각) → 수1 완강 · 수2 T2 (실모 날)", "2026-09-09": "수2 T3 + BNR(극한) + T4 ①", "2026-09-10": "수2 T4 ② + T5, T6, T7 ①", "2026-09-11": "수2 T7 ② + T8 ①② (학원 날)", "2026-09-12": "수2 T8 ③ + T9 + T10 ① (실모 날)", "2026-09-13": "수2 T10 ②③ (학원 날)", "2026-09-14": "수2 T11 ①~⑤", "2026-09-15": "학교 방문 — 뉴런 없음", "2026-09-16": "수2 T11 ⑥ + T12", "2026-09-17": "수2 T13 ①~④", "2026-09-18": "수2 T14 ①② (학원 날)", "2026-09-19": "수2 T14 ③ + BNR(미분) + T15 ① (실모 날)", "2026-09-20": "수2 T15 ② (학원 날)", "2026-09-21": "수2 T16, T17", "2026-09-22": "수2 T18, T19 (실모 날)", "2026-09-23": "수2 BNR(적분) → 수2 완강 · 미적 BNR(극한) + T3 + T4 ①", "2026-09-24": "미적 T4 ② + T5 + T6 ①", "2026-09-25": "미적 T6 ②③ (학원 날)", "2026-09-26": "미적 T6 ④⑤ (실모 날)", "2026-09-27": "미적 T7 (학원 날)", "2026-09-28": "미적 T8 + T9 ①②", "2026-09-29": "미적 T9 ③④⑤ (실모 날)", "2026-09-30": "미적 T10, T11", "2026-10-01": "미적 T12 + BNR(미분) ①②", "2026-10-02": "미적 T13 (학원 날)", "2026-10-03": "미적 T14 (실모 날)", "2026-10-04": "미적 T15, T16 (학원 날)", "2026-10-05": "미적 T17 + BNR(적분) → 뉴런 완강", "2026-10-06": "버퍼: 밀린 테마 (실모 날)", "2026-10-07": "버퍼: 오답 테마 재수강", "2026-10-08": "버퍼", "2026-10-09": "버퍼 (학원 날)", "2026-10-10": "버퍼 · 완강 마감"};
+const NEURON_PLAN = {"2026-09-04": "수1 T8 (완료) + 시간 되면 T9 ①", "2026-09-05": "수1 T9 ①② — 회사 날, 여기까지", "2026-09-06": "수1 T9 ③④⑤ + T10 + BNR(지로)", "2026-09-07": "수1 T11 ①~④", "2026-09-08": "수1 T11 ⑤ + T12 ①②③ (실모 날)", "2026-09-09": "수1 T12 ④ + BNR(삼각) → 수1 완강 · 수2 T2 + T3 ①", "2026-09-10": "수2 T3 ②③ + BNR(극한) + T4 ①", "2026-09-11": "수2 T4 ② (학원 날)", "2026-09-12": "수2 T5, T6, T7 ① (실모 날)", "2026-09-13": "수2 T7 ② + T8 ①② (학원 날)", "2026-09-14": "수2 T8 ③ + T9 + T10 ①②", "2026-09-15": "학교 방문 — 뉴런 없음", "2026-09-16": "수2 T10 ③ + T11 ①~④", "2026-09-17": "수2 T11 ⑤⑥ + T12 ①②③", "2026-09-18": "수2 T12 ④⑤ + T13 ① (학원 날)", "2026-09-19": "수2 T13 ②③ + T14 ① (실모 날)", "2026-09-20": "수2 T13 ④ (학원 날)", "2026-09-21": "수2 T14 ②③ + BNR(미분) + T15 ①", "2026-09-22": "수2 T15 ② + T16 (실모 날)", "2026-09-23": "수2 T17, T18 + T19 ①", "2026-09-24": "수2 T19 ② + BNR(적분) → 수2 완강 · 미적 BNR(극한) + T3", "2026-09-25": "미적 T4 (학원 날)", "2026-09-26": "미적 T5 + T6 ① (실모 날)", "2026-09-27": "미적 T6 ②③ (학원 날)", "2026-09-28": "미적 T6 ④⑤ + T7", "2026-09-29": "미적 T8 + T9 ① (실모 날)", "2026-09-30": "미적 T9 ②~⑤", "2026-10-01": "미적 T10, T11", "2026-10-02": "미적 T12 (학원 날)", "2026-10-03": "미적 BNR(미분) ①② (실모 날)", "2026-10-04": "미적 T13 (학원 날)", "2026-10-05": "미적 T14 + T15", "2026-10-06": "미적 T16, T17 + BNR(적분) → 뉴런 완강 (실모 날)", "2026-10-07": "버퍼: 밀린 테마", "2026-10-08": "버퍼: 오답 테마 재수강", "2026-10-09": "버퍼 (학원 날)", "2026-10-10": "버퍼 · 완강 마감"};
 const LIGHT_DAYS = d => { const dt=new Date(d); const w=dt.getDay(); return (d>='2026-09-11' && (w===5||w===0)); };
 const OFF_DAYS = new Set(['2026-09-15']);
 const CHECKLIST = [
@@ -715,6 +715,12 @@ async function init(){
   document.getElementById('resetBtn').onclick = resetTimer;
   document.getElementById('saveMock').onclick = saveMock;
   document.getElementById('notifBtn').onclick = async ()=>{ if(!('Notification' in window)){ toast('이 환경은 알림을 지원하지 않는다.'); return; } const p=await Notification.requestPermission(); if(p==='granted'){ scheduleNotifs(); toast('탭이 열려 있는 동안 알림.'); } else toast('알림이 거부됐다.'); };
+  document.getElementById('importBtn').onclick = ()=>document.getElementById('importFile').click();
+  document.getElementById('importFile').onchange = async e=>{ const f=e.target.files[0]; if(!f) return; try{ const d=JSON.parse(await f.text()); if(!confirm('백업 파일의 기록을 불러올까요? 같은 날짜는 백업 내용으로 덮어써요.')) return;
+    if(d.settings){ settings={...settings,...d.settings}; await S.set('settings',settings); }
+    if(Array.isArray(d.mocks)){ const seen=new Set(mocks.map(m=>JSON.stringify(m))); d.mocks.forEach(m=>{ if(!seen.has(JSON.stringify(m))) mocks.push(m); }); await S.set('mocks',mocks); }
+    if(d.days){ for(const [k,v] of Object.entries(d.days)){ allDays[k]=v; await S.set(k,v); } if(allDays[todayKey()]){ day=allDays[todayKey()]; } }
+    toast('불러왔어요.'); renderAll(); }catch(err){ toast('파일을 읽을 수 없어요.'); } e.target.value=''; };
   document.getElementById('exportBtn').onclick = ()=>{ const blob=new Blob([JSON.stringify({settings,mocks,days:allDays},null,2)],{type:'application/json'}); const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download=`tracker-${ymd(new Date())}.json`; a.click(); };
   setInterval(()=>{ renderHeader(); renderWhip(); }, 60000);
 }
