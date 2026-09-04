@@ -279,9 +279,9 @@
     <h2>최근 14일 <span></span>숫자는 체크 완료율, 점은 기상</h2>
     <div class="grid14" id="grid14"></div>
 
-    <h2>뉴런 진도 <span></span>41테마 기준</h2>
+    <h2>뉴런 진도 <span></span>남은 37테마 기준 (수1 T9부터)</h2>
     <div class="row">
-      <div class="field"><label for="neuronDone">완료한 테마 수 (누적)</label><input type="number" id="neuronDone" min="0" max="41" step="0.5" inputmode="decimal"></div>
+      <div class="field"><label for="neuronDone">수1 T9부터 완료한 테마 수 (누적)</label><input type="number" id="neuronDone" min="0" max="37" step="0.5" inputmode="decimal"></div>
       <div class="field"><label>이 속도면 완강일</label><div id="neuronProj" style="padding:9px 0;font-weight:700">—</div></div>
     </div>
 
@@ -317,7 +317,10 @@
 /* ---------- constants ---------- */
 const EXAM = new Date(2026, 10, 19); // 2026-11-19 수능
 const WAKE_TARGET = 6*60 + 40;
-const NEURON_TOTAL = 41;
+const NEURON_TOTAL = 37; // 수1 4 + 수2 18 + 미적 15 (BNR 제외)
+const NEURON_PLAN = {"2026-09-04": "수1 T9 ① (되면 ②) — 회사 날", "2026-09-05": "수1 T9 ②~⑤ + T10", "2026-09-06": "수1 BNR(지로) + T11 ①②③", "2026-09-07": "수1 T11 ④⑤ + T12", "2026-09-08": "수1 BNR(삼각) → 수1 완강 · 수2 T2 (실모 날)", "2026-09-09": "수2 T3 + BNR(극한) + T4 ①", "2026-09-10": "수2 T4 ② + T5, T6, T7 ①", "2026-09-11": "수2 T7 ② + T8 ①② (학원 날)", "2026-09-12": "수2 T8 ③ + T9 + T10 ① (실모 날)", "2026-09-13": "수2 T10 ②③ (학원 날)", "2026-09-14": "수2 T11 ①~⑤", "2026-09-15": "학교 방문 — 뉴런 없음", "2026-09-16": "수2 T11 ⑥ + T12", "2026-09-17": "수2 T13 ①~④", "2026-09-18": "수2 T14 ①② (학원 날)", "2026-09-19": "수2 T14 ③ + BNR(미분) + T15 ① (실모 날)", "2026-09-20": "수2 T15 ② (학원 날)", "2026-09-21": "수2 T16, T17", "2026-09-22": "수2 T18, T19 (실모 날)", "2026-09-23": "수2 BNR(적분) → 수2 완강 · 미적 BNR(극한) + T3 + T4 ①", "2026-09-24": "미적 T4 ② + T5 + T6 ①", "2026-09-25": "미적 T6 ②③ (학원 날)", "2026-09-26": "미적 T6 ④⑤ (실모 날)", "2026-09-27": "미적 T7 (학원 날)", "2026-09-28": "미적 T8 + T9 ①②", "2026-09-29": "미적 T9 ③④⑤ (실모 날)", "2026-09-30": "미적 T10, T11", "2026-10-01": "미적 T12 + BNR(미분) ①②", "2026-10-02": "미적 T13 (학원 날)", "2026-10-03": "미적 T14 (실모 날)", "2026-10-04": "미적 T15, T16 (학원 날)", "2026-10-05": "미적 T17 + BNR(적분) → 뉴런 완강", "2026-10-06": "버퍼: 밀린 테마 (실모 날)", "2026-10-07": "버퍼: 오답 테마 재수강", "2026-10-08": "버퍼", "2026-10-09": "버퍼 (학원 날)", "2026-10-10": "버퍼 · 완강 마감"};
+const LIGHT_DAYS = d => { const dt=new Date(d); const w=dt.getDay(); return (d>='2026-09-11' && (w===5||w===0)); };
+const OFF_DAYS = new Set(['2026-09-15']);
 const CHECKLIST = [
   { when:'집 · 식탁 7:00~9:20', items:[
     ['sm-chart','사문 도표 3문제','10분 타임어택, 선지가 요구하는 칸만'],
@@ -332,7 +335,7 @@ const CHECKLIST = [
     ['car-neuron','뉴런 강의 (태블릿, 1.8x)','문제 먼저 → 막힌 것만 강의'],
   ]},
   { when:'학원 12:30~20:30', items:[
-    ['neuron-solve','뉴런 1~1.5테마 문제 풀이','차에서 본 테마 + 다음 테마 예제 선풀이'],
+    ['neuron-solve','뉴런 오늘 배정분 끝내기','문제 먼저 → 막힌 것만 강의'],
     ['prev-ex','이전 테마 예제 2개 재풀이','2회독 대신'],
     ['verify48','48시간 검증: 그제 테마 기출 3문제','이틀 안에 안 꺼내면 영상 시청'],
     ['kor','국어 3세트','독서 1 · 문학 1 · 언매/화작 1, 타이머'],
@@ -520,11 +523,18 @@ function renderWhip(){
 function renderChecklist(){
   const root = document.getElementById('checklist'); root.innerHTML='';
   let total=0, done=0;
+  const tk = ymd(new Date()); const planTxt = NEURON_PLAN[tk]; const light = LIGHT_DAYS(tk); const off = OFF_DAYS.has(tk);
+  const ban=document.createElement('div'); ban.className='whip'+(off?'':' calm'); ban.style.marginBottom='12px';
+  ban.innerHTML = off ? '<p>오늘은 뉴런 없는 날. 대신 이동·대기 시간에 사탐 선지 노트와 15번 기출만.</p>'
+    : `<p><b>오늘 뉴런</b> · ${planTxt||'계획표 범위 밖 — 오답 테마 재수강'}</p>${light?'<p>학원 날: 필수는 뉴런 배정분 + 사문 도표 + 생윤 선지. 국어는 1세트만.</p>':''}`;
+  root.appendChild(ban);
   CHECKLIST.forEach(b=>{
     const blk = document.createElement('div'); blk.className='block';
     const n = b.items.filter(i=>day.checks[i[0]]).length;
     blk.innerHTML = `<div class="when"><span>${b.when}</span><span>${n}/${b.items.length}</span></div>`;
     b.items.forEach(([id,name,sub])=>{
+      if(id==='neuron-solve' && NEURON_PLAN[ymd(new Date())]) sub = NEURON_PLAN[ymd(new Date())] + ' · 문제 먼저, 막힌 것만 강의';
+      if(id==='kor' && LIGHT_DAYS(ymd(new Date()))) { name='국어 1세트 (학원 날)'; sub='독서 또는 문학 1개만'; }
       total++; if(day.checks[id]) done++;
       const it = document.createElement('button'); it.className='item'+(day.checks[id]?' done':''); it.setAttribute('aria-pressed', !!day.checks[id]);
       it.innerHTML = `<span class="box"></span><span class="txt">${name}<span class="sub">${sub}</span></span>`;
